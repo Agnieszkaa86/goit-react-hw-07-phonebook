@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts } from 'redux/selectors';
-import { nanoid } from '@reduxjs/toolkit';
-import { addContact } from '../../redux/contactSlice';
+import { selectContacts } from 'redux/selectors';
+import { addContact } from '../../redux/operations';
 import { Form, Input, Label, Button } from './ContactForm.styled';
 
 export const ContactForm = () => {
@@ -10,23 +9,21 @@ export const ContactForm = () => {
 
   const [number, setNumber] = useState('');
 
-  const contacts = useSelector(getContacts);
+  const { items } = useSelector(selectContacts);
   const dispatch = useDispatch();
 
   const handleSubmit = event => {
     event.preventDefault();
-    if (
-      contacts.find(
-        contact =>
-          contact.name.toLowerCase() === event.target.name.value.toLowerCase()
-      )
-    ) {
-      alert('There is a contact with this name');
-      resetForm();
-      return;
+    const name = event.target.elements.name.value;
+    const phone = event.target.elements.number.value;
+
+    const existInContacts = items.some(
+      item => item.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existInContacts) {
+      return alert(`There is ${name} in your contacts`);
     }
-    dispatch(addContact({ name, number, id: nanoid() }));
-    alert('Contact added to phonebook');
+    dispatch(addContact({ name, phone }));
     resetForm();
   };
 
