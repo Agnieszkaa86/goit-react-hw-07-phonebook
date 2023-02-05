@@ -1,36 +1,40 @@
+import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { getContacts, getFilter } from 'redux/selectors';
-import { deleteContact } from '../../redux/contactSlice';
+import {
+  selectIsLoading,
+  selectVisibleContacts,
+  selectError,
+} from 'redux/selectors';
+import { deleteContact, fetchContacts } from 'redux/operations';
 import { List, Item, Button } from './ContactList.styled';
 
-const getVisibleContacts = (contacts, filter) => {
-  return contacts.filter(contact =>
-    contact.name.toLowerCase().includes(filter.toLowerCase())
-  );
-};
-
 export const ContactList = () => {
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
   const dispatch = useDispatch();
-  const filteredContacts = getVisibleContacts(contacts, filter);
+  const contacts = useSelector(selectVisibleContacts);
+
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   return (
-    <List>
-      {contacts.length > 0 ? (
-        filteredContacts.map(({ id, name, number }) => {
-          return (
-            <Item key={id}>
-              {name} : {number}
-              <Button onClick={() => dispatch(deleteContact(id))}>
-                Delete
-              </Button>
-            </Item>
-          );
-        })
-      ) : (
-        <p>There are no contacts</p>
-      )}
-    </List>
+    <>
+      {isLoading && <p>Data is loading</p>}
+      {error && <p>{error}</p>}
+      <List>
+        {contacts.length > 0 &&
+          contacts.map(({ id, name, phone }) => {
+            return (
+              <Item key={id}>
+                {name} : {phone}
+                <Button onClick={() => dispatch(deleteContact(id))}>
+                  Delete
+                </Button>
+              </Item>
+            );
+          })}
+      </List>
+    </>
   );
 };
